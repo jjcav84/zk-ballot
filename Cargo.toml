@@ -16,6 +16,7 @@ ff = "0.13"
 rand = "0.8"
 hex = "0.4"
 serde = { version = "1", features = ["derive"] }
+negentropy = { git = "https://github.com/jjcav84/negentropy.git" }
 
 [[bin]]
 name = "demo"
