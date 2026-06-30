@@ -21,6 +21,8 @@ pub mod hash;
 pub mod merkle;
 pub mod circuit;
 pub mod tree;
+pub mod ballot_energy;
 
 pub use circuit::{VoteCircuit, VoteInputs, VOTE_TREE_DEPTH, NUM_PUBLIC_INPUTS};
 pub use tree::MerkleTree;
+pub use ballot_energy::{BallotEnergyResult, BallotPotential};

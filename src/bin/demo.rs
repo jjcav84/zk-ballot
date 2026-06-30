@@ -26,6 +26,7 @@ use rand::rngs::OsRng;
 use zk_ballot::{
     circuit::{VoteCircuit, VoteInputs, VOTE_TREE_DEPTH},
     tree::MerkleTree,
+    ballot_energy::BallotPotential,
 };
 
 fn main() {
@@ -96,6 +97,8 @@ fn main() {
 
     let mut tally_yes = 0u64;
     let mut tally_no = 0u64;
+    let mut total_energy = 0.0f64;
+    let mut total_negentropy = 0.0f64;
 
     for (i, ((secret, seed), vote)) in voters.iter().zip(votes.iter()).enumerate() {
         let inputs = VoteInputs {
@@ -126,6 +129,7 @@ fn main() {
         )
         .expect("prove");
         let proof_bytes = transcript.finalize();
+        let prove_ms = start.elapsed().as_millis() as u64;
         println!(
             "  voter {} proof generated in {:?} ({} bytes)",
             i,
@@ -145,7 +149,25 @@ fn main() {
             &mut verifier_transcript,
         )
         .expect("verify");
+        let verify_ms = start.elapsed().as_millis() as u64;
         println!("  voter {} proof verified in {:?}", i, start.elapsed());
+
+        // Compute FMD physics energy score
+        let potential = BallotPotential {
+            proof_latency_ms: prove_ms,
+            verify_latency_ms: verify_ms,
+            ..Default::default()
+        };
+        let energy = potential.energy(0.95); // high trust in the registry
+        println!(
+            "    energy={:.2}  negentropy={:.1} bits  committor={:.1}%  anonymity_set={}",
+            energy.energy,
+            energy.negentropy_bits,
+            energy.committor * 100.0,
+            energy.anonymity_set,
+        );
+        total_energy += energy.energy;
+        total_negentropy += energy.negentropy_bits;
 
         if *vote == Fr::one() {
             tally_yes += 1;
@@ -168,6 +190,25 @@ fn main() {
     println!("  4. Vote is bound to this proof (commitment)");
     println!("\nNo one — not the tally authority, not other voters, not the chain —");
     println!("can link a proof back to the voter who produced it.");
+
+    println!("\n=== FMD Physics Energy Summary ===");
+    println!("Model: FMD Route Energy (adapted from orkid fmd-physics/src/route_energy.rs)");
+    println!("Formula: energy = confidence * sqrt(depth_ratio * timing_factor) * latency_decay * (1 - cost_penalty)");
+    println!("Negentropy: N = constraint_count * tree_depth = {} * {} = {:.0} bits/proof",
+        BallotPotential::default().constraint_count,
+        VOTE_TREE_DEPTH,
+        BallotPotential::default().constraint_count as f64 * VOTE_TREE_DEPTH as f64,
+    );
+    println!("Total energy: {:.2}", total_energy);
+    println!("Total negentropy extracted: {:.1} bits", total_negentropy);
+    println!("Average energy per proof: {:.2}", total_energy / num_voters as f64);
+    println!("Average negentropy per proof: {:.1} bits", total_negentropy / num_voters as f64);
+    println!("\nReferences:");
+    println!("  orkid/fmd-physics/src/route_energy.rs — route energy formula");
+    println!("  orkid/fmd-physics/src/tps.rs — committor function");
+    println!("  Blog: Blockchain Thermodynamics (Landauer, Shannon, negentropy)");
+    println!("  Blog: Negentropy = Information (D_KL, Brillouin)");
+    println!("  Blog: Formal Negentropy Model (MEV closure equation)");
 }
 
 fn to_hex(f: Fr) -> String {
