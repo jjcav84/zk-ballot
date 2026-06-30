@@ -1,5 +1,7 @@
 # zk-ballot
 
+**By [Orkid Labs](https://www.orkidlabs.com)** — privacy-first crypto engineering
+
 **Anonymous on-chain voting with Halo2 zero-knowledge proofs, scored by FMD physics energy.**
 
 Built for the [Thrive](https://thrive.xyz) / [Horizen](https://horizen.io) Genesis Pool grant program — Anonymous Infrastructure category. Energy model adapted from the [orkid](https://github.com/jjcav84/orkid) FMD (Financial Molecular Dynamics) MEV detection engine.
@@ -305,6 +307,12 @@ Blog posts establishing the thermodynamic framework:
 - ["Negentropy = Information: A Generalized Mathematical Framework"](https://github.com/jjcav84/orkid/blob/main/blog/2025-11-06-negentropy-information-generalized-framework.md) — D_KL, Brillouin's negentropy principle
 - ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-formal-negentropy-model-mev-dynamics.md) — MEV closure equation, graph diffusion
 - ["Complex Microstructure and Route Scoring in DeFi"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-complex-microstructure-route-scoring.md) — Complex microstructure factor, phase conjugation, time-normalized scoring
+
+## About
+
+Built by [Orkid Labs](https://www.orkidlabs.com) — a privacy-first crypto
+engineering lab building thermodynamic infrastructure for decentralized
+systems. See our other work at [orkidlabs.com](https://www.orkidlabs.com).
 
 ## License
 
