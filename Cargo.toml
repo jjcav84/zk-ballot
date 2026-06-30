@@ -1,0 +1,25 @@
+[package]
+name = "zk-ballot"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jacob Cavazos <jjcav84@gmail.com>"]
+license = "MIT"
+description = "Anonymous on-chain voting with Halo2 zero-knowledge proofs — Thrive/Horizen grant demo"
+repository = "https://github.com/jjcav84/zk-ballot"
+keywords = ["zero-knowledge", "halo2", "voting", "privacy", "horizen"]
+categories = ["cryptography", "cryptography::cryptocurrencies"]
+
+[dependencies]
+halo2_proofs = { version = "0.3", default-features = false, features = ["batch"] }
+halo2curves = "0.7"
+ff = "0.13"
+rand = "0.8"
+hex = "0.4"
+
+[[bin]]
+name = "demo"
+path = "src/bin/demo.rs"
+
+[lib]
+name = "zk_ballot"
+path = "src/lib.rs"
