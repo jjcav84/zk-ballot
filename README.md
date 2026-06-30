@@ -1,3 +1,7 @@
+<p align="center">
+  <a href="https://www.orkidlabs.com"><img src="assets/logo.png" alt="Orkid Labs" width="220" /></a>
+</p>
+
 # zk-ballot
 
 **By [Orkid Labs](https://www.orkidlabs.com)** — privacy-first crypto engineering
