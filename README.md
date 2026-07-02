@@ -8,7 +8,14 @@
 
 **Anonymous on-chain voting with Halo2 zero-knowledge proofs, scored by FMD physics energy.**
 
-Built for the [Thrive](https://thrive.xyz) / [Horizen](https://horizen.io) Genesis Pool grant program — Anonymous Infrastructure category. Energy model adapted from the [orkid](https://github.com/jjcav84/orkid) FMD (Financial Molecular Dynamics) MEV detection engine.
+Built for the [Thrive](https://thrive.xyz) zkVerify Web3 Program. Energy model adapted from the [orkid](https://github.com/jjcav84/orkid) FMD (Financial Molecular Dynamics) MEV detection engine.
+
+> **Note:** The orkid repository is private. Access can be provided to
+> Thrive Protocol reviewers and other appropriate cases on request —
+> contact [Orkid Labs](https://www.orkidlabs.com). The theoretical
+> foundation is published as a preprint:
+> ["Negative EV per Unit Time as Blockchain Inefficiency"](https://www.researchgate.net/publication/399474539_Negative_EV_per_Unit_Time_as_Blockchain_Inefficiency)
+> — [Jacob Cavazos, ResearchGate](https://www.researchgate.net/profile/Jacob-Cavazos).
 
 ---
 
@@ -31,7 +38,7 @@ zk-ballot applies the **Financial Molecular Dynamics (FMD)** physics framework f
 
 ### Negentropy = Information = Order
 
-From Brillouin's negentropy principle (1953) and the orkid blog post ["Negentropy = Information: A Generalized Mathematical Framework"](https://github.com/jjcav84/orkid/blob/main/blog/2025-11-06-negentropy-information-generalized-framework.md):
+From Brillouin's negentropy principle (1953) and the orkid blog post ["Negentropy = Information: A Generalized Mathematical Framework"](https://www.orkidlabs.com/blog/negentropy-information-generalized-framework/):
 
 > **Negentropy = H_max − H_actual = D_KL(p_informed || p_uninformed)**
 
@@ -57,7 +64,7 @@ This is the Shannon entropy reduction — the amount of uncertainty about voter 
 
 ### Landauer's principle
 
-From Landauer (1961) and the orkid blog post ["Blockchain Thermodynamics: How Negentropy Explains MEV"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-blockchain-thermodynamics-negentropy-mev.md):
+From Landauer (1961) and the orkid blog post ["Blockchain Thermodynamics: How Negentropy Explains MEV, Consensus, and Arbitrage"](https://www.orkidlabs.com/blog/blockchain-thermodynamics-negentropy-mev-physics/):
 
 > **E ≥ k_B × T × ln(2) per bit erased**
 
@@ -65,7 +72,7 @@ Proof generation pays the thermodynamic cost of extracting negentropy. The compu
 
 ### The MEV closure analogy
 
-From the orkid blog post ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-formal-negentropy-model-mev-dynamics.md):
+From the orkid blog post ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://www.orkidlabs.com/blog/formal-negentropy-model-mev-dynamics-graph-diffusion/):
 
 > **dM/dt = a·δ + b·H_M − c·χ(I)·M**
 
@@ -273,44 +280,66 @@ zk-ballot/
 └── README.md
 ```
 
-## Thrive / Horizen alignment
+## Thrive zkVerify Web3 Program (#45) — Grant Plan
 
-This project targets the **Horizen Genesis Pool** — net-new privacy-first applications built for [Horizen](https://horizen.io), an EVM-compatible Base L3 appchain.
+### Ecosystem value proposition
 
-| Thrive category | How zk-ballot fits |
-|----------------|-------------------|
-| Anonymous Infrastructure | Private voting systems — exactly this |
-| Confidential DeFi | On-chain governance for private DeFi protocols |
-| Privacy-Preserving AI | Verifiable, anonymous model governance |
+zk-ballot drives **proof verification volume** to zkVerify. Each anonymous vote generates a Halo2 ZK proof that is submitted to zkVerify for verification. The proof proves vote validity (eligible voter, single vote, correct tally) without revealing voter identity.
 
-### Roadmap to Horizen mainnet
+| Scenario | Votes/election | Proofs to zkVerify/election |
+|----------|---------------|---------------------------|
+| DAO governance (mid-size) | 500 | 500 |
+| Community poll (large) | 2,000 | 2,000 |
+| Multi-election (quarterly) | 5,000 | 5,000 |
+| **Annual (10 elections)** | **~20,000** | **~20,000** |
 
-1. **[Done]** Core Halo2 circuit + off-circuit Merkle tree + demo
-2. **[Done]** FMD physics energy model for proof quality scoring
-3. **[Next]** Solidity verifier contract (on-chain proof verification)
-4. **[Next]** Voter registry contract (manages Merkle root on-chain)
-5. **[Next]** Tally contract (accumulates vote commitments, reveals tally)
-6. **[Next]** Poseidon hash chip (production-grade, replaces demo hash)
-7. **[Next]** Deploy to Horizen L3 testnet
+**25,000+ ZK Proofs** (Milestone 2: Initial Traction target) is achievable with ~25,000 votes verified — well within a year of mid-size DAO governance.
 
-### Why this matters for Horizen
+### Milestone roadmap
 
-Horizen's [Vela](https://blog.horizen.io/introducing-vela-the-confidential-compute-layer-on-horizen) confidential compute layer provides TEE-based privacy. ZK-proof-based voting complements this — Vela protects computation, ZK proofs protect voter identity. Together they enable governance systems where both the execution and the voter's identity are private, with cryptographic auditability.
+Progressive achievement over 150 days, following Thrive's zkVerify Web3 Program milestone structure.
+
+**Application Requirements (10% unlocked at approval)**:
+- ✅ Detailed technical plan showing how zero-knowledge proofs will be integrated and verified using zkVerify
+- ✅ Zero-knowledge focused user experience design
+- ✅ Token utility and ecosystem value proposition
+- ✅ Business plan demonstrating revenue model and sustainability beyond grant period
+
+**Milestone 1: Live Deployment (10% unlocked) — 45 days post approval**:
+- Production deployment with fully functional zkVerify integration and proof verification
+- Beta testing with proof verification validation
+- Published documentation covering zkVerify integration and proof verification processes
+
+**Technical scope:** Solidity verifier contract (on-chain proof verification), voter registry contract (manages Merkle root on-chain), tally contract (accumulates vote commitments, reveals tally), Poseidon hash chip (production-grade, replaces demo hash), zkVerify proof submission pipeline
+
+**Milestone 2: Initial Traction (30% unlocked) — 90 days post approval**:
+- Early traction metrics, choose one of the following:
+  - Transaction Volume: 25,000+ ZK Proofs sent to zkVerify
+  - Unique Users: 250+ unique addresses interacting with zkVerify integration
+
+**Milestone 3: Scale (50% unlocked) — 150 days post approval**:
+- Choose one of the following:
+  - Transaction Volume: 250,000+ ZK Proofs sent to zkVerify
+  - Unique Users: 2,500+ unique addresses interacting with zkVerify integration
+
+### Why this matters for zkVerify
+
+zkVerify provides dedicated, low-cost verification of zero-knowledge proofs on-chain. Anonymous voting generates high proof volume — every ballot is a separate Halo2 proof. By verifying these proofs on zkVerify, governance systems get cryptographic guarantees of vote validity without burdening the host chain's execution layer.
 
 ## References
 
-The FMD physics energy model is adapted from the orkid workspace:
+The FMD physics energy model is adapted from the orkid workspace (private repo — access available for reviewers on request). The theoretical foundation is published as a preprint: ["Negative EV per Unit Time as Blockchain Inefficiency"](https://www.researchgate.net/publication/399474539_Negative_EV_per_Unit_Time_as_Blockchain_Inefficiency) by [Jacob Cavazos](https://www.researchgate.net/profile/Jacob-Cavazos).
 
-- **Route energy formula**: [`orkid/fmd-physics/src/route_energy.rs`](https://github.com/jjcav84/orkid/blob/main/fmd-physics/src/route_energy.rs)
-- **TPS committor function**: [`orkid/fmd-physics/src/tps.rs`](https://github.com/jjcav84/orkid/blob/main/fmd-physics/src/tps.rs)
-- **Profit potential energy**: [`orkid/fmd-physics/src/profit_potential.rs`](https://github.com/jjcav84/orkid/blob/main/fmd-physics/src/profit_potential.rs)
+- **Route energy formula**: `orkid/fmd-physics/src/route_energy.rs`
+- **TPS committor function**: `orkid/fmd-physics/src/tps.rs`
+- **Profit potential energy**: `orkid/fmd-physics/src/profit_potential.rs`
 
-Blog posts establishing the thermodynamic framework:
+Blog posts establishing the thermodynamic framework (publicly available at [orkidlabs.com/blog](https://www.orkidlabs.com/blog/)):
 
-- ["Blockchain Thermodynamics: How Negentropy Explains MEV"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-blockchain-thermodynamics-negentropy-mev.md) — Landauer's principle, Shannon entropy, negentropy extraction
-- ["Negentropy = Information: A Generalized Mathematical Framework"](https://github.com/jjcav84/orkid/blob/main/blog/2025-11-06-negentropy-information-generalized-framework.md) — D_KL, Brillouin's negentropy principle
-- ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-formal-negentropy-model-mev-dynamics.md) — MEV closure equation, graph diffusion
-- ["Complex Microstructure and Route Scoring in DeFi"](https://github.com/jjcav84/orkid/blob/main/blog/2025-10-18-complex-microstructure-route-scoring.md) — Complex microstructure factor, phase conjugation, time-normalized scoring
+- ["Blockchain Thermodynamics: How Negentropy Explains MEV, Consensus, and Arbitrage"](https://www.orkidlabs.com/blog/blockchain-thermodynamics-negentropy-mev-physics/) — Landauer's principle, Shannon entropy, negentropy extraction
+- ["Negentropy = Information: A Generalized Mathematical Framework"](https://www.orkidlabs.com/blog/negentropy-information-generalized-framework/) — D_KL, Brillouin's negentropy principle
+- ["A Formal Mathematical Model of Blockchain Negentropy and MEV Dynamics"](https://www.orkidlabs.com/blog/formal-negentropy-model-mev-dynamics-graph-diffusion/) — MEV closure equation, graph diffusion
+- ["Complex Microstructure and Route Scoring in DeFi: Beyond Simple EV"](https://www.orkidlabs.com/blog/complex-microstructure-route-scoring-defi/) — Complex microstructure factor, phase conjugation, time-normalized scoring
 
 ## About
 
