@@ -2,15 +2,12 @@
 //!
 //! Proves that a leaf belongs to a Merkle tree of depth `DEPTH` with a given
 //! root. Each level uses a conditional-swap gate to order `(left, right)` from
-//! `(current, sibling)` based on a position bit, then hashes the pair.
-//!
-//! This is the standard pattern used by Tornado Cash, Semaphore, and the
-//! vocdoni / valargroup Halo2 voting circuits — adapted here to a minimal
-//! algebraic hash for demo purposes.
+//! `(current, sibling)` based on a position bit, then hashes the pair using
+//! the Poseidon hash chip.
 
 use halo2_proofs::{
     circuit::{AssignedCell, Chip, Layouter, Value},
-    plonk::{Advice, Column, ConstraintSystem, Error, Expression, Selector},
+    plonk::{Advice, Column, ConstraintSystem, Error, Expression, Fixed, Selector},
     poly::Rotation,
 };
 use halo2curves::bn256::Fr;
@@ -30,15 +27,18 @@ pub struct MerkleChip {
 }
 
 impl MerkleChip {
-    /// Configure the chip. `hash_advice` are the 3 advice columns the hash
-    /// chip operates on; `swap_advice` are the 5 columns the swap gate uses.
+    /// Configure the chip. `hash_advice` are the 3 state advice columns the
+    /// Poseidon hash chip operates on; `swap_advice` are the 5 columns the
+    /// swap gate uses.
     pub fn configure(
         meta: &mut ConstraintSystem<Fr>,
-        hash_advice: [Column<Advice>; 3],
+        hash_state: [Column<Advice>; 3],
+        hash_aux: [Column<Advice>; 3],
+        hash_rc: [Column<Fixed>; 3],
         swap_advice: [Column<Advice>; 5],
     ) -> MerkleConfig {
         let s_swap = meta.selector();
-        let hash = HashChip::configure(meta, hash_advice);
+        let hash = HashChip::configure(meta, hash_state, hash_aux, hash_rc);
 
         // Booleanity: pos_bit * (1 - pos_bit) = 0
         meta.create_gate("swap: pos_bit boolean", |meta| {
@@ -140,9 +140,9 @@ impl MerkleChip {
                 },
             )?;
 
-            // Hash (left, right) -> parent
+            // Hash (left, right) -> parent using Poseidon
             current_val = off_circuit_hash(left_val, right_val);
-            current_cell = hash_chip.hash_cells(layouter, &left_cell, &right_cell)?;
+            current_cell = hash_chip.hash_cells(layouter, &left_cell, &right_cell, left_val, right_val)?;
         }
 
         Ok(current_cell)

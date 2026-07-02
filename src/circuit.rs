@@ -1,9 +1,12 @@
 //! The vote circuit — ties together Merkle membership, nullifier, boolean
 //! vote, and vote commitment.
+//!
+//! Uses Poseidon hash (width 3, x^5 S-box, 8 full + 57 partial rounds,
+//! production-standard parameters for BN254) for all hashing operations.
 
 use halo2_proofs::{
     circuit::{Layouter, SimpleFloorPlanner, Value},
-    plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Expression, Instance, Selector},
+    plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Expression, Fixed, Instance, Selector},
     poly::Rotation,
 };
 use halo2curves::bn256::Fr;
@@ -36,6 +39,14 @@ pub struct VoteInputs {
 pub struct VoteConfig {
     /// Columns for witnessing raw private inputs (secret, seed, vote).
     witness_advice: [Column<Advice>; 3],
+    /// Poseidon state advice columns (3 elements).
+    poseidon_state: [Column<Advice>; 3],
+    /// Poseidon S-box auxiliary columns (t0, t1, t2).
+    poseidon_aux: [Column<Advice>; 3],
+    /// Poseidon round constant fixed columns (3).
+    poseidon_rc: [Column<Fixed>; 3],
+    /// 5 advice columns for the swap gate.
+    swap_advice: [Column<Advice>; 5],
     instance: Column<Instance>,
     s_bool: Selector,
     hash: crate::hash::HashConfig,
@@ -76,11 +87,23 @@ impl Circuit<Fr> for VoteCircuit {
         let instance = meta.instance_column();
         meta.enable_equality(instance);
 
-        // 3 advice columns for the hash chip
-        let hash_advice = [
+        // 3 advice columns for Poseidon state
+        let poseidon_state = [
             meta.advice_column(),
             meta.advice_column(),
             meta.advice_column(),
+        ];
+        // 3 advice columns for Poseidon S-box intermediates
+        let poseidon_aux = [
+            meta.advice_column(),
+            meta.advice_column(),
+            meta.advice_column(),
+        ];
+        // 3 fixed columns for Poseidon round constants
+        let poseidon_rc = [
+            meta.fixed_column(),
+            meta.fixed_column(),
+            meta.fixed_column(),
         ];
         // 5 advice columns for the swap gate
         let swap_advice = [
@@ -98,16 +121,17 @@ impl Circuit<Fr> for VoteCircuit {
         ];
 
         // Enable equality on all advice for copy constraints
-        for col in hash_advice
+        for col in poseidon_state
             .iter()
+            .chain(poseidon_aux.iter())
             .chain(swap_advice.iter())
             .chain(witness_advice.iter())
         {
             meta.enable_equality(*col);
         }
 
-        let hash = HashChip::configure(meta, hash_advice);
-        let merkle = MerkleChip::configure(meta, hash_advice, swap_advice);
+        let hash = HashChip::configure(meta, poseidon_state, poseidon_aux, poseidon_rc);
+        let merkle = MerkleChip::configure(meta, poseidon_state, poseidon_aux, poseidon_rc, swap_advice);
 
         // Boolean constraint for the vote: vote * (1 - vote) = 0
         let s_bool = meta.selector();
@@ -119,6 +143,10 @@ impl Circuit<Fr> for VoteCircuit {
 
         VoteConfig {
             witness_advice,
+            poseidon_state,
+            poseidon_aux,
+            poseidon_rc,
+            swap_advice,
             instance,
             s_bool,
             hash,
@@ -155,7 +183,7 @@ impl Circuit<Fr> for VoteCircuit {
         )?;
 
         // ---- 2. Compute leaf = H(secret, seed) ----
-        let leaf = hash_chip.hash_cells(&mut layouter, &secret, &seed)?;
+        let leaf = hash_chip.hash_cells(&mut layouter, &secret, &seed, self.inputs.secret, self.inputs.nullifier_seed)?;
         let leaf_val = off_circuit_hash(self.inputs.secret, self.inputs.nullifier_seed);
 
         // ---- 3. Prove Merkle membership of leaf → root ----
@@ -172,7 +200,7 @@ impl Circuit<Fr> for VoteCircuit {
         layouter.constrain_instance(root_cell.cell(), config.instance, 0)?;
 
         // ---- 4. Compute nullifier = H(seed, 0) and constrain to instance[1] ----
-        let nullifier = hash_chip.hash_cell_const(&mut layouter, &seed, Fr::zero())?;
+        let nullifier = hash_chip.hash_cell_const(&mut layouter, &seed, self.inputs.nullifier_seed, Fr::zero())?;
         layouter.constrain_instance(nullifier.cell(), config.instance, 1)?;
 
         // ---- 5. Boolean vote: vote * (1 - vote) = 0 ----
@@ -187,7 +215,8 @@ impl Circuit<Fr> for VoteCircuit {
         )?;
 
         // ---- 6. Compute vote_commitment = H(vote, secret) → instance[2] ----
-        let commitment = hash_chip.hash_cells(&mut layouter, &vote_cell, &secret)?;
+        let vote_val = self.inputs.vote;
+        let commitment = hash_chip.hash_cells(&mut layouter, &vote_cell, &secret, vote_val, self.inputs.secret)?;
         layouter.constrain_instance(commitment.cell(), config.instance, 2)?;
 
         Ok(())

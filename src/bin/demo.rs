@@ -74,7 +74,7 @@ fn main() {
             MerkleTree::vote_commitment(*vote, *secret),
         ];
 
-        let prover = MockProver::run(VOTE_TREE_DEPTH as u32 + 2, &circuit, vec![public])
+        let prover = MockProver::run(VOTE_TREE_DEPTH as u32 + 8, &circuit, vec![public])
             .expect("mock prover setup");
         prover.assert_satisfied();
         println!("  voter {} mock proof verified ✓", i);
@@ -83,7 +83,7 @@ fn main() {
 
     // ---- 4. Real Halo2 proof (PLONK + IPA commitment) ----
     println!("--- Real Halo2 proof generation ---");
-    let k = (VOTE_TREE_DEPTH as u32) + 6;
+    let k = (VOTE_TREE_DEPTH as u32) + 8;
     println!("Circuit parameter k = {} (2^{} rows)", k, k);
 
     let start = Instant::now();

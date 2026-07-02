@@ -70,7 +70,9 @@ impl Default for BallotPotential {
             proof_latency_ms: 1000,
             verify_latency_ms: 27,
             vote_age_secs: 0.0,
-            constraint_count: 20, // zk-ballot: ~20 constraints (hash + merkle + bool)
+            constraint_count: 3811, // zk-ballot: ~3811 constraints
+                                     //   leaf hash (633) + nullifier hash (633) + vote commitment (633) +
+                                     //   4 merkle hashes (4*633) + 4 swap gates (12) + boolean vote (1)
             tree_depth: 4,        // VOTE_TREE_DEPTH = 4 → 16 voters
         }
     }
@@ -217,13 +219,13 @@ mod tests {
 
     #[test]
     fn test_negentropy_formula() {
-        // 20 constraints, depth 4: N = 20 * 4 = 80 bits
+        // 3811 constraints, depth 4: N = 3811 * 4 = 15244 bits
         let pot = BallotPotential::default();
         let result = pot.energy(0.9);
-        let expected = 20.0 * 4.0;
+        let expected = 3811.0 * 4.0;
         assert!(
             (result.negentropy_bits - expected).abs() < 0.01,
-            "negentropy should be 20 * 4 = 80, got {:.1}",
+            "negentropy should be 3811 * 4 = 15244, got {:.1}",
             result.negentropy_bits
         );
     }

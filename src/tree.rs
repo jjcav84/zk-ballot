@@ -1,15 +1,16 @@
 //! Off-circuit Merkle tree and helpers.
 //!
-//! Uses the same algebraic hash `H(a, b) = a² + b² + a·b` as the on-circuit
-//! chip so proofs verify against trees built here.
+//! Uses the same Poseidon hash as the on-circuit chip so proofs verify
+//! against trees built here.
 
 use halo2curves::bn256::Fr;
 
 use crate::circuit::VOTE_TREE_DEPTH;
 
-/// Algebraic hash matching the on-circuit `HashChip`.
+/// Poseidon hash matching the on-circuit `HashChip`.
+/// Width t=3, x^5 S-box, 8 full + 8 partial rounds, circulant MDS.
 pub fn hash(a: Fr, b: Fr) -> Fr {
-    a * a + b * b + a * b
+    crate::hash::hash(a, b)
 }
 
 /// A binary Merkle tree of fixed depth `VOTE_TREE_DEPTH`.
