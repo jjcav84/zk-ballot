@@ -32,6 +32,9 @@
 //! Constraint cost: ~384 non-linear constraints per hash (vs 3 for the
 //! algebraic hash). Still lightweight for a depth-4 Merkle tree.
 
+// Index-based loops over fixed-width Poseidon state are intentional for clarity.
+#![allow(clippy::needless_range_loop)]
+
 use halo2_proofs::{
     circuit::{AssignedCell, Chip, Layouter, Value},
     plonk::{Advice, Column, ConstraintSystem, Error, Expression, Fixed, Selector},
@@ -108,7 +111,7 @@ pub fn hash(a: Fr, b: Fr) -> Fr {
     let mut state = [a, b, Fr::zero()];
 
     for round in 0..(FULL_ROUNDS + PARTIAL_ROUNDS) {
-        let is_full = round < FIRST_FULL || round >= FIRST_FULL + PARTIAL_ROUNDS;
+        let is_full = !(FIRST_FULL..FIRST_FULL + PARTIAL_ROUNDS).contains(&round);
 
         // ARC
         for i in 0..WIDTH {
@@ -296,7 +299,7 @@ impl HashChip {
 
     /// Hash two existing cells, returning the output `AssignedCell`.
     /// Performs the full Poseidon permutation on [a, b, 0].
-    pub fn hash_cells(
+        pub fn hash_cells(
         &self,
         layouter: &mut impl Layouter<Fr>,
         a: &AssignedCell<Fr, Fr>,
@@ -332,7 +335,7 @@ impl HashChip {
         let mut state_vals = [a_val, b_val, Fr::zero()];
 
         for round in 0..(FULL_ROUNDS + PARTIAL_ROUNDS) {
-            let is_full = round < FIRST_FULL || round >= FIRST_FULL + PARTIAL_ROUNDS;
+            let is_full = !(FIRST_FULL..FIRST_FULL + PARTIAL_ROUNDS).contains(&round);
 
             // Save pre-ARC state (needed for S-box witness computation)
             let pre_arc = state_vals;

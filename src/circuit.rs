@@ -6,7 +6,7 @@
 
 use halo2_proofs::{
     circuit::{Layouter, SimpleFloorPlanner, Value},
-    plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Expression, Fixed, Instance, Selector},
+    plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Expression, Instance, Selector},
     poly::Rotation,
 };
 use halo2curves::bn256::Fr;
@@ -39,14 +39,6 @@ pub struct VoteInputs {
 pub struct VoteConfig {
     /// Columns for witnessing raw private inputs (secret, seed, vote).
     witness_advice: [Column<Advice>; 3],
-    /// Poseidon state advice columns (3 elements).
-    poseidon_state: [Column<Advice>; 3],
-    /// Poseidon S-box auxiliary columns (t0, t1, t2).
-    poseidon_aux: [Column<Advice>; 3],
-    /// Poseidon round constant fixed columns (3).
-    poseidon_rc: [Column<Fixed>; 3],
-    /// 5 advice columns for the swap gate.
-    swap_advice: [Column<Advice>; 5],
     instance: Column<Instance>,
     s_bool: Selector,
     hash: crate::hash::HashConfig,
@@ -143,10 +135,6 @@ impl Circuit<Fr> for VoteCircuit {
 
         VoteConfig {
             witness_advice,
-            poseidon_state,
-            poseidon_aux,
-            poseidon_rc,
-            swap_advice,
             instance,
             s_bool,
             hash,
