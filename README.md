@@ -261,7 +261,9 @@ Measured on Apple Silicon (M-series), `k=10` (1024 rows):
 
 ## Why Halo2?
 
-Halo2 uses the [Inner Product Argument (IPA)](https://eprint.iacr.org/2019/1021) commitment scheme, which requires **no trusted setup ceremony** — a critical advantage for decentralized governance. The BN254 curve is natively supported by the EVM, so proofs can be verified on-chain via a Solidity verifier contract.
+Halo2 uses the [Inner Product Argument (IPA)](https://eprint.iacr.org/2019/1021) commitment scheme, which requires **no trusted setup ceremony** — a critical advantage for decentralized governance.
+
+> **Note on EVM compatibility:** IPA-based Halo2 proofs on BN254 are **not** directly verifiable inside a Solidity contract. EVM on-chain verification requires the KZG commitment-scheme variant of Halo2, which in turn requires a trusted setup. The current implementation uses IPA; switching to KZG is on the roadmap if on-chain EVM verification becomes a hard requirement. For now, proofs are verified off-chain or via zkVerify.
 
 ## Project structure
 
