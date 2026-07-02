@@ -54,13 +54,13 @@ The genius of ZK voting is that it **extracts negentropy** (verifiable order) wh
 | **Vote value** | High entropy (could be anything) | Negentropy extracted: vote is boolean. Entropy preserved: actual vote hidden |
 | **Double-voting** | Uncertain | Negentropy extracted: nullifier proves uniqueness |
 
-For the zk-ballot circuit (~20 constraints, depth-4 tree):
+For the zk-ballot circuit (3,811 constraints, depth-4 tree):
 
 ```
-N = constraint_count × tree_depth = 20 × 4 = 80 bits
+N = constraint_count × tree_depth = 3,811 × 4 = 15,244 bits
 ```
 
-This is the Shannon entropy reduction — the amount of uncertainty about voter eligibility eliminated by the proof. The tree depth determines the anonymity set size (2^depth = 16 voters), and each constraint contributes ~1 bit of negentropy per tree level.
+This is the Shannon entropy reduction — the amount of uncertainty about voter eligibility eliminated by the proof. The tree depth determines the anonymity set size (2^depth = 16 voters), and the Poseidon hash chip contributes the bulk of the constraints per tree level.
 
 ### Landauer's principle
 
@@ -68,7 +68,7 @@ From Landauer (1961) and the orkid blog post ["Blockchain Thermodynamics: How Ne
 
 > **E ≥ k_B × T × ln(2) per bit erased**
 
-Proof generation pays the thermodynamic cost of extracting negentropy. The compute energy spent generating the Halo2 proof is the Landauer cost of creating 80 bits of order from private chaos. The verifier receives this order without paying the cost.
+Proof generation pays the thermodynamic cost of extracting negentropy. The compute energy spent generating the Halo2 proof is the Landauer cost of creating 15,244 bits of order from private chaos. The verifier receives this order without paying the cost.
 
 ### The MEV closure analogy
 
@@ -122,12 +122,12 @@ For a 5-voter election (depth-4 tree, 16-voter anonymity set), registry trust=0.
 
 | Metric | Value |
 |--------|-------|
-| Energy per proof | ~526 |
-| Negentropy per proof | 80 bits |
+| Energy per proof | ~127 |
+| Negentropy per proof | 15,244 bits |
 | Committor | 97.2% |
 | Anonymity set | 16 voters |
-| Total negentropy (5 proofs) | 400 bits |
-| Proof size | 4032 bytes |
+| Total negentropy (5 proofs) | 76,220 bits |
+| Proof size | 5152 bytes |
 
 ## Public inputs
 
@@ -180,7 +180,7 @@ For a 5-voter election (depth-4 tree, 16-voter anonymity set), registry trust=0.
 
 ### Chips
 
-- **`HashChip`** — constrains `out = a² + b² + a·b` via a single PLONK gate. This is a demo hash (not cryptographically secure). A production deployment would swap in a [Poseidon](https://github.com/privacy-scaling-explorations/halo2/tree/main/halo2_gadgets/src/poseidon) chip without changing the circuit's public/private interface.
+- **`HashChip`** — production-standard Poseidon permutation over BN254 (`t=3`, `x⁵` S-box, `R_F=8` full + `R_P=57` partial rounds, circulant MDS `[[3,1,1],[1,3,1],[1,1,3]]`, fixed-column round constants). All 195 round constants are generated via rejection sampling to ensure they are valid, non-zero BN254 scalars. Forging requires inverting Poseidon over BN254.
 
 - **`MerkleChip`** — conditional-swap gate per tree level: enforces `pos_bit` booleanity, computes `left`/`right` via mux, then hashes the pair. This is the standard pattern used by [Tornado Cash](https://github.com/tornadocash/tornado-core), [Semaphore](https://github.com/semaphore-protocol/semaphore), and [vocdoni](https://github.com/vocdoni/halo2-franchise-proof).
 
@@ -209,13 +209,13 @@ Registered 5 voters
   ...
 
 --- Real Halo2 proof generation ---
-Circuit parameter k = 10 (2^10 rows)
-Setup SRS: 1.1s
-Keygen (vk + pk): 280ms
+Circuit parameter k = 12 (2^12 rows)
+Setup SRS: ~60s
+Keygen (vk + pk): ~14s
 
-  voter 0 proof generated in 1.00s (4032 bytes)
-  voter 0 proof verified in 28ms
-    energy=528.37  negentropy=80.0 bits  committor=97.2%  anonymity_set=16
+  voter 0 proof generated in ~35s (5152 bytes)
+  voter 0 proof verified in ~900ms
+    energy=~127  negentropy=15,244 bits  committor=97.2%  anonymity_set=16
   ...
 
 === Tally ===
@@ -225,11 +225,11 @@ NO:  2
 === FMD Physics Energy Summary ===
 Model: FMD Route Energy (adapted from orkid fmd-physics/src/route_energy.rs)
 Formula: energy = confidence * sqrt(depth_ratio * timing_factor) * latency_decay * (1 - cost_penalty)
-Negentropy: N = constraint_count * tree_depth = 20 * 4 = 80 bits/proof
-Total energy: 2628.18
-Total negentropy extracted: 400.0 bits
-Average energy per proof: 525.64
-Average negentropy per proof: 80.0 bits
+Negentropy: N = constraint_count * tree_depth = 3,811 * 4 = 15,244 bits/proof
+Total energy: ~623
+Total negentropy extracted: 76,220 bits
+Average energy per proof: ~125
+Average negentropy per proof: 15,244 bits
 ```
 
 ## Run tests
@@ -240,17 +240,17 @@ cargo test
 
 ## Performance
 
-Measured on Apple Silicon (M-series), `k=10` (1024 rows):
+Measured on Apple Silicon (M-series), `k=12` (4096 rows):
 
 | Operation | Time |
 |-----------|------|
-| SRS setup | ~1.1s |
-| Keygen (vk + pk) | ~280ms |
-| Prove (per voter) | ~1.0s |
-| Verify (per proof) | ~28ms |
-| Proof size | 4032 bytes |
-| Energy per proof | ~526 |
-| Negentropy per proof | 80 bits |
+| SRS setup | ~60s |
+| Keygen (vk + pk) | ~14s |
+| Prove (per voter) | ~35s |
+| Verify (per proof) | ~900ms |
+| Proof size | 5152 bytes |
+| Energy per proof | ~125 |
+| Negentropy per proof | 15,244 bits |
 
 ## Tech stack
 
@@ -273,7 +273,7 @@ zk-ballot/
 ├── src/
 │   ├── lib.rs              # Library exports
 │   ├── circuit.rs          # VoteCircuit — ties together all constraints
-│   ├── hash.rs             # HashChip — algebraic hash gate
+│   ├── hash.rs             # HashChip — production-standard BN254 Poseidon permutation
 │   ├── merkle.rs           # MerkleChip — conditional-swap membership proof
 │   ├── tree.rs             # Off-circuit Merkle tree + helpers
 │   ├── ballot_energy.rs    # FMD physics energy model (adapted from orkid)
@@ -312,7 +312,7 @@ Progressive achievement over 150 days, following Thrive's zkVerify Web3 Program 
 - Beta testing with proof verification validation
 - Published documentation covering zkVerify integration and proof verification processes
 
-**Technical scope:** Solidity verifier contract (on-chain proof verification), voter registry contract (manages Merkle root on-chain), tally contract (accumulates vote commitments, reveals tally), Poseidon hash chip (production-grade, replaces demo hash), zkVerify proof submission pipeline
+**Technical scope:** Solidity verifier contract (on-chain proof verification), voter registry contract (manages Merkle root on-chain), tally contract (accumulates vote commitments, reveals tally), zkVerify proof submission pipeline. The Poseidon hash chip is already implemented and verified.
 
 **Milestone 2: Initial Traction (30% unlocked) — 90 days post approval**:
 - Early traction metrics, choose one of the following:
