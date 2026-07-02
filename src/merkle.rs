@@ -98,9 +98,9 @@ impl MerkleChip {
         let mut current_val = leaf_val;
         let mut current_cell = leaf_cell.clone();
 
-        for level in 0..depth {
+        for (level, sibling_val) in path.iter().take(depth).enumerate() {
             let pos_bit_val = Fr::from(((position >> level) & 1) as u64);
-            let sibling_val = path[level];
+            let sibling_val = *sibling_val;
 
             let (left_val, right_val) = if pos_bit_val == Fr::one() {
                 (sibling_val, current_val)

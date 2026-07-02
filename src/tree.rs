@@ -57,7 +57,7 @@ impl MerkleTree {
         let mut path = Vec::with_capacity(VOTE_TREE_DEPTH);
         let mut idx = index;
         for level in 0..VOTE_TREE_DEPTH {
-            let sibling = if idx % 2 == 0 { idx + 1 } else { idx - 1 };
+            let sibling = if idx.is_multiple_of(2) { idx + 1 } else { idx - 1 };
             path.push(self.nodes[level][sibling]);
             idx /= 2;
         }
