@@ -88,6 +88,16 @@ impl BallotPotential {
     /// - negentropy_bits → `negentropy::Negentropy::from_constraints(n, 2^depth)`
     ///   (since `log₂(2^depth) = depth`, this gives `n × depth`)
     pub fn energy(&self, registry_trust: f64) -> BallotEnergyResult {
+        // Validate inputs
+        assert!(
+            self.vote_age_secs.is_finite() && self.vote_age_secs >= 0.0,
+            "vote_age_secs must be finite and non-negative"
+        );
+        assert!(
+            self.verify_cost_usd.is_finite() && self.verify_cost_usd >= 0.0,
+            "verify_cost_usd must be finite and non-negative"
+        );
+
         // Domain mapping: registry trust (0..1) → confidence (0..100)
         let confidence = 100.0 * registry_trust.clamp(0.0, 1.0);
 
@@ -119,7 +129,11 @@ impl BallotPotential {
 
         // Negentropy: N = constraint_count × tree_depth
         // Expressed as from_constraints(n, 2^depth) since log₂(2^depth) = depth
-        let anonymity_set = 1u64 << self.tree_depth;
+        let anonymity_set = if self.tree_depth >= 64 {
+            u64::MAX
+        } else {
+            1u64 << self.tree_depth
+        };
         let negentropy_bits =
             Negentropy::from_constraints(self.constraint_count, anonymity_set).bits();
 
