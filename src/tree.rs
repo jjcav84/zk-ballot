@@ -26,6 +26,8 @@ impl MerkleTree {
     /// Build a tree from a list of voter commitments (leaves). Pads with
     /// `Fr::zero()` up to `2^DEPTH`.
     pub fn new(leaves: &[Fr]) -> Self {
+        // Compile-time guard: VOTE_TREE_DEPTH must be < usize bits to prevent shift overflow
+        const { assert!(VOTE_TREE_DEPTH < 64, "VOTE_TREE_DEPTH must be < 64"); }
         let capacity = 1usize << VOTE_TREE_DEPTH;
         let mut padded = leaves.to_vec();
         padded.resize(capacity, Fr::zero());
