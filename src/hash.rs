@@ -7,19 +7,17 @@
 //! - Circulant MDS matrix [[3,1,1],[1,3,1],[1,1,3]]
 //! - Round constants stored in fixed columns
 //!
-//! Gate layout (per full round = 4 rows, per partial round = 2 rows):
+//! Gate layout (per full round = 8 rows, per partial round = 4 rows):
 //!
 //! Full round:
-//!   Row 0: input state [s0, s1, s2] assigned (no gate)
-//!   Row 1: s_sbox_0 — S-box state[0]: out = (s0 + rc0)^5
-//!   Row 2: s_sbox_1 — S-box state[1]: out = (s1 + rc1)^5
-//!   Row 3: s_sbox_2 — S-box state[2]: out = (s2 + rc2)^5
-//!   Row 4: s_mds — MDS multiplication
+//!   Region 1: s_sbox_0 — S-box state[0]: out = (s0 + rc0)^5 (2 rows)
+//!   Region 2: s_sbox_1 — S-box state[1]: out = (s1 + rc1)^5 (2 rows)
+//!   Region 3: s_sbox_2 — S-box state[2]: out = (s2 + rc2)^5 (2 rows)
+//!   Region 4: s_mds — MDS multiplication (2 rows)
 //!
 //! Partial round:
-//!   Row 0: input state assigned (no gate)
-//!   Row 1: s_sbox_0 + s_arc_12 — S-box state[0], ARC state[1], state[2]
-//!   Row 2: s_mds — MDS multiplication
+//!   Region 1: s_sbox_0 + s_arc_12 — S-box state[0], ARC state[1], state[2] (2 rows)
+//!   Region 2: s_mds — MDS multiplication (2 rows)
 //!
 //! Security: Production-standard Poseidon round count for width 3 over BN254.
 //! 8 full rounds + 57 partial rounds = 65 total rounds, matching the round
@@ -31,8 +29,9 @@
 //! still requires inverting Poseidon over BN254 (assumed hard under the
 //! standard Poseidon security assumptions).
 //!
-//! Constraint cost: ~384 non-linear constraints per hash (vs 3 for the
-//! algebraic hash). Still lightweight for a depth-4 Merkle tree.
+//! Constraint cost: ~324 non-linear constraints per hash (vs 3 for the
+//! algebraic hash), ~633 total constraints per hash. Still lightweight for a
+//! depth-4 Merkle tree.
 
 use halo2_proofs::{
     circuit::{AssignedCell, Chip, Layouter, Value},
